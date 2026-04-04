@@ -1,12 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-public enum CardZone
-{
-    Hand,
-    PlayOrder
-}
-
 [RequireComponent(typeof(RectTransform))]
 public class CardDrag : MonoBehaviour,
     IBeginDragHandler,
@@ -21,7 +15,7 @@ public class CardDrag : MonoBehaviour,
     private Vector2 dragOffset;
 
     private HandController handController;
-    private CardsToPlayOrder playOrderZone;
+    private CardGenerator[] generators;
 
     public bool IsDragging { get; private set; }
     public bool IsHovering { get; private set; }
@@ -29,30 +23,26 @@ public class CardDrag : MonoBehaviour,
     public Vector3 TargetLocalPosition { get; private set; }
     public Quaternion TargetLocalRotation { get; private set; }
 
-    public Vector3 PlayZoneTargetLocalPosition { get; private set; }
-    public Quaternion PlayZoneTargetLocalRotation { get; private set; }
+    public Vector3 GeneratorTargetLocalPosition { get; private set; }
+    public Quaternion GeneratorTargetLocalRotation { get; private set; }
 
     public CardVisual Visual { get; private set; }
 
     public CardZone CurrentZone { get; private set; } = CardZone.Hand;
+    public CardGenerator CurrentGenerator { get; private set; }
 
     public void Initialize(HandController controller)
     {
         handController = controller;
-        rectTransform = GetComponent<RectTransform>();
-        rootCanvas = GetComponentInParent<Canvas>();
-
-        if (rootCanvas != null && rootCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
-            uiCamera = rootCanvas.worldCamera;
-
-        Visual = GetComponentInChildren<CardVisual>();
-        if (Visual != null)
-            Visual.Initialize(this);
-
-        playOrderZone = FindObjectOfType<CardsToPlayOrder>();
+        CacheReferences();
     }
 
     private void Awake()
+    {
+        CacheReferences();
+    }
+
+    private void CacheReferences()
     {
         rectTransform = GetComponent<RectTransform>();
         rootCanvas = GetComponentInParent<Canvas>();
@@ -64,14 +54,19 @@ public class CardDrag : MonoBehaviour,
         if (Visual != null)
             Visual.Initialize(this);
 
-        playOrderZone = FindObjectOfType<CardsToPlayOrder>();
+        generators = FindObjectsOfType<CardGenerator>();
+    }
+
+    public void RefreshGenerators()
+    {
+        generators = FindObjectsOfType<CardGenerator>();
     }
 
     public void SetLogicalIndex(int index, int count)
     {
     }
 
-    public void SetPlayOrderIndex(int index)
+    public void SetGeneratorIndex(int index)
     {
     }
 
@@ -80,16 +75,21 @@ public class CardDrag : MonoBehaviour,
         CurrentZone = zone;
     }
 
+    public void SetCurrentGenerator(CardGenerator generator)
+    {
+        CurrentGenerator = generator;
+    }
+
     public void SetTarget(Vector3 localPos, Quaternion localRot)
     {
         TargetLocalPosition = localPos;
         TargetLocalRotation = localRot;
     }
 
-    public void SetPlayZoneTarget(Vector3 localPos, Quaternion localRot)
+    public void SetGeneratorTarget(Vector3 localPos, Quaternion localRot)
     {
-        PlayZoneTargetLocalPosition = localPos;
-        PlayZoneTargetLocalRotation = localRot;
+        GeneratorTargetLocalPosition = localPos;
+        GeneratorTargetLocalRotation = localRot;
     }
 
     public void AnimateToTarget(float layoutLerpSpeed, float returnSpeed, float dragScale)
@@ -110,20 +110,20 @@ public class CardDrag : MonoBehaviour,
         );
     }
 
-    public void AnimatePlayZone(float speed)
+    public void AnimateGeneratorZone(float speed)
     {
-        if (IsDragging || CurrentZone != CardZone.PlayOrder)
+        if (IsDragging || CurrentZone != CardZone.Generator)
             return;
 
         rectTransform.localPosition = Vector3.Lerp(
             rectTransform.localPosition,
-            PlayZoneTargetLocalPosition,
+            GeneratorTargetLocalPosition,
             Time.deltaTime * speed
         );
 
         rectTransform.localRotation = Quaternion.Slerp(
             rectTransform.localRotation,
-            PlayZoneTargetLocalRotation,
+            GeneratorTargetLocalRotation,
             Time.deltaTime * speed
         );
     }
@@ -137,8 +137,8 @@ public class CardDrag : MonoBehaviour,
         }
         else
         {
-            rectTransform.localPosition = PlayZoneTargetLocalPosition;
-            rectTransform.localRotation = PlayZoneTargetLocalRotation;
+            rectTransform.localPosition = GeneratorTargetLocalPosition;
+            rectTransform.localRotation = GeneratorTargetLocalRotation;
         }
     }
 
@@ -175,9 +175,9 @@ public class CardDrag : MonoBehaviour,
         {
             handController.ReorderCardByPosition(this);
         }
-        else if (CurrentZone == CardZone.PlayOrder && playOrderZone != null)
+        else if (CurrentZone == CardZone.Generator && CurrentGenerator != null)
         {
-            playOrderZone.ReorderCardByPosition(this);
+            CurrentGenerator.ReorderCardByPosition(this);
         }
     }
 
@@ -185,32 +185,87 @@ public class CardDrag : MonoBehaviour,
     {
         IsDragging = false;
 
-        bool droppedIntoPlayZone =
-            playOrderZone != null &&
-            playOrderZone.IsInsideZone(eventData.position, uiCamera);
+        CardGenerator targetGenerator = FindTargetGenerator(eventData.position);
 
-        if (droppedIntoPlayZone)
+        if (targetGenerator != null)
         {
-            if (CurrentZone == CardZone.Hand)
-            {
+            MoveToGenerator(targetGenerator);
+            return;
+        }
+
+        MoveToHand();
+    }
+
+    private CardGenerator FindTargetGenerator(Vector2 screenPosition)
+    {
+        if (generators == null || generators.Length == 0)
+            return null;
+
+        for (int i = 0; i < generators.Length; i++)
+        {
+            CardGenerator generator = generators[i];
+
+            if (generator == null)
+                continue;
+
+            if (!generator.IsInsideZone(screenPosition, uiCamera))
+                continue;
+
+            if (!generator.CanAcceptCard(this))
+                continue;
+
+            return generator;
+        }
+
+        return null;
+    }
+
+    private void MoveToHand()
+    {
+        RemoveFromCurrentZone();
+        transform.SetParent(handController.hand);
+        handController.AddExistingCardToHand(this);
+        CurrentGenerator = null;
+    }
+
+    private void MoveToGenerator(CardGenerator generator)
+    {
+        if (generator == null)
+            return;
+
+        if (CurrentZone == CardZone.Generator && CurrentGenerator == generator)
+        {
+            generator.ReorderCardByPosition(this);
+            return;
+        }
+
+        RemoveFromCurrentZone();
+
+        transform.SetParent(generator.transform);
+        generator.AddCard(this);
+
+        CurrentGenerator = generator;
+        SetCurrentZone(CardZone.Generator);
+    }
+
+    private void RemoveFromCurrentZone()
+    {
+        switch (CurrentZone)
+        {
+            case CardZone.Hand:
                 handController.RemoveCardFromHand(this);
-                transform.SetParent(playOrderZone.transform);
-                playOrderZone.AddCard(this);
-            }
-            else
-            {
-                playOrderZone.ReorderCardByPosition(this);
-            }
+                break;
+
+            case CardZone.Generator:
+                if (CurrentGenerator != null)
+                    CurrentGenerator.RemoveCard(this);
+                break;
         }
-        else
-        {
-            if (CurrentZone == CardZone.PlayOrder)
-            {
-                playOrderZone.RemoveCard(this);
-                transform.SetParent(handController.hand);
-                handController.AddExistingCardToHand(this);
-            }
-        }
+    }
+
+    public CardData GetCardData()
+    {
+        return GetComponent<CardData>();
     }
 
     public void OnPointerEnter(PointerEventData eventData)

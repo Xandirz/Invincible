@@ -68,7 +68,6 @@ public class HandController : MonoBehaviour
             cards.Add(card);
 
         card.SetCurrentZone(CardZone.Hand);
-
         RefreshSiblingOrder();
     }
 
@@ -124,33 +123,13 @@ public class HandController : MonoBehaviour
             CardData dataA = a.GetComponent<CardData>();
             CardData dataB = b.GetComponent<CardData>();
 
-            int typeA = GetTypePriority(dataA);
-            int typeB = GetTypePriority(dataB);
+            int typeA = dataA == null ? int.MaxValue : (int)dataA.cardType;
+            int typeB = dataB == null ? int.MaxValue : (int)dataB.cardType;
 
             return typeB.CompareTo(typeA);
         });
 
         RefreshSiblingOrder();
-    }
-
-    private int GetTypePriority(CardData data)
-    {
-        if (data == null)
-            return int.MaxValue;
-
-        switch (data.cardType)
-        {
-            case CardType.Damage:
-                return 0;
-            case CardType.Heal:
-                return 1;
-            case CardType.Buff:
-                return 2;
-            case CardType.Invulnerability:
-                return 3;
-            default:
-                return 999;
-        }
     }
 
     private void NotifySwapPunch(int oldIndex, int newIndex)
