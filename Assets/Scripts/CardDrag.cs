@@ -144,9 +144,12 @@ public class CardDrag : MonoBehaviour,
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        if (GetComponent<FlyingCardToGenerator>() != null)
+            return;
+
         IsDragging = true;
 
-        if (CurrentZone == CardZone.Hand)
+        if (CurrentZone == CardZone.Hand && handController != null)
             handController.BringToFront(this);
 
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -158,7 +161,6 @@ public class CardDrag : MonoBehaviour,
 
         dragOffset = (Vector2)rectTransform.localPosition - localMousePos;
     }
-
     public void OnDrag(PointerEventData eventData)
     {
         RectTransformUtility.ScreenPointToLocalPointInRectangle(

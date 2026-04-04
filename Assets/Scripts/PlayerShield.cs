@@ -34,6 +34,7 @@ public class PlayerShield : MonoBehaviour
             new Color(0.7f, 0.3f, 1f)
         );
 
-        Destroy(enemy.gameObject);
+        enemy.TakeDamageShield(enemy.currentHealth);
+        
     }
 }

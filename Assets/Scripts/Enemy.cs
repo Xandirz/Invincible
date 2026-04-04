@@ -76,6 +76,27 @@ public class Enemy : MonoBehaviour
         );
 
         if (currentHealth <= 0f)
-            Destroy(gameObject);
+            Die();
+    }
+    
+    public void TakeDamageShield(float amount)
+    {
+        if (amount <= 0f)
+            return;
+
+        currentHealth -= amount;
+
+ 
+
+        if (currentHealth <= 0f)
+            Die();
+    }
+    
+    private void Die()
+    {
+        if (EnemyDeathRewardManager.Instance != null)
+            EnemyDeathRewardManager.Instance.RegisterEnemyDeath(transform.position);
+
+        Destroy(gameObject);
     }
 }

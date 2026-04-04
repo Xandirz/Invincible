@@ -17,7 +17,20 @@ public class HandController : MonoBehaviour
     public float returnSpeed = 14f;
     public float dragScale = 1.08f;
 
+    [Header("Reward Spawn")]
+    public Canvas rootCanvas;
+    public float rewardCardFlySpeed = 8f;
+
+    [Header("Auto Move To Generator")]
+    public float autoMoveFlySpeed = 10f;
+
     private readonly List<CardDrag> cards = new();
+
+    private void Awake()
+    {
+        if (rootCanvas == null)
+            rootCanvas = FindObjectOfType<Canvas>();
+    }
 
     private void Update()
     {
@@ -52,6 +65,7 @@ public class HandController : MonoBehaviour
 
         card.Initialize(this);
         card.SetCurrentZone(CardZone.Hand);
+        card.SetCurrentGenerator(null);
 
         cards.Add(card);
 
@@ -68,6 +82,8 @@ public class HandController : MonoBehaviour
             cards.Add(card);
 
         card.SetCurrentZone(CardZone.Hand);
+        card.SetCurrentGenerator(null);
+
         RefreshSiblingOrder();
     }
 
@@ -82,6 +98,9 @@ public class HandController : MonoBehaviour
 
     public void BringToFront(CardDrag card)
     {
+        if (card == null)
+            return;
+
         card.transform.SetAsLastSibling();
     }
 
@@ -130,6 +149,124 @@ public class HandController : MonoBehaviour
         });
 
         RefreshSiblingOrder();
+    }
+
+    public void SendAllMatchingCardsToGenerator(CardGenerator generator)
+    {
+        if (generator == null)
+            return;
+
+        List<CardDrag> matchingCards = new List<CardDrag>();
+
+        for (int i = 0; i < cards.Count; i++)
+        {
+            CardDrag card = cards[i];
+            if (card == null)
+                continue;
+
+            if (!generator.CanAcceptCard(card))
+                continue;
+
+            matchingCards.Add(card);
+        }
+
+        for (int i = 0; i < matchingCards.Count; i++)
+        {
+            StartFlyingCardToGenerator(matchingCards[i], generator);
+        }
+    }
+
+    private void StartFlyingCardToGenerator(CardDrag card, CardGenerator generator)
+    {
+        if (card == null || generator == null)
+            return;
+
+        RemoveCardFromHand(card);
+
+        FlyingCardToGenerator flying = card.GetComponent<FlyingCardToGenerator>();
+        if (flying == null)
+            flying = card.gameObject.AddComponent<FlyingCardToGenerator>();
+
+        flying.flySpeed = autoMoveFlySpeed;
+        flying.Initialize(generator, this);
+    }
+
+    public void MoveExistingCardToGenerator(GameObject cardObj, CardGenerator generator)
+    {
+        if (cardObj == null || generator == null)
+            return;
+
+        CardDrag card = cardObj.GetComponent<CardDrag>();
+        if (card == null)
+            return;
+
+        card.transform.SetParent(generator.transform, false);
+        generator.AddCard(card);
+        card.SetCurrentGenerator(generator);
+        card.SetCurrentZone(CardZone.Generator);
+        card.SnapInstant();
+    }
+
+    public void SpawnRewardCardFromWorld(Vector3 worldPosition)
+    {
+        if (cardPrefabs == null || cardPrefabs.Count == 0 || hand == null || rootCanvas == null)
+            return;
+
+        int randomIndex = Random.Range(0, cardPrefabs.Count);
+        GameObject randomPrefab = cardPrefabs[randomIndex];
+
+        if (randomPrefab == null)
+            return;
+
+        GameObject cardObj = Instantiate(randomPrefab, rootCanvas.transform);
+
+        RectTransform rect = cardObj.GetComponent<RectTransform>();
+        if (rect == null)
+            return;
+
+        Vector3 screenPoint = Camera.main.WorldToScreenPoint(worldPosition);
+
+        RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvasRect,
+            screenPoint,
+            rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : Camera.main,
+            out Vector2 localPoint
+        );
+
+        rect.anchoredPosition = localPoint;
+        rect.localRotation = Quaternion.identity;
+        rect.localScale = Vector3.one;
+
+        CardDrag existingDrag = cardObj.GetComponent<CardDrag>();
+        if (existingDrag != null)
+            Destroy(existingDrag);
+
+        FlyingCardToHand flying = cardObj.AddComponent<FlyingCardToHand>();
+        flying.flySpeed = rewardCardFlySpeed;
+        flying.Initialize(hand, this);
+    }
+
+    public void ConvertFlyingCardToHandCard(GameObject cardObj)
+    {
+        if (cardObj == null || hand == null)
+            return;
+
+        cardObj.transform.SetParent(hand, false);
+
+        CardDrag card = cardObj.GetComponent<CardDrag>();
+        if (card == null)
+            card = cardObj.AddComponent<CardDrag>();
+
+        card.Initialize(this);
+        card.SetCurrentZone(CardZone.Hand);
+        card.SetCurrentGenerator(null);
+
+        if (!cards.Contains(card))
+            cards.Add(card);
+
+        RefreshSiblingOrder();
+        ForceSnapTargets();
     }
 
     private void NotifySwapPunch(int oldIndex, int newIndex)

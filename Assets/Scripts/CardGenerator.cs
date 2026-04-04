@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class CardGenerator : MonoBehaviour
+public class CardGenerator : MonoBehaviour, IPointerClickHandler
 {
     [Header("Zone")]
     public RectTransform zoneRect;
@@ -17,6 +18,7 @@ public class CardGenerator : MonoBehaviour
 
     [Header("References")]
     public PlayerStats playerStats;
+    public HandController handController;
 
     private readonly List<CardDrag> cards = new();
     private float shieldRefreshTimer;
@@ -28,12 +30,29 @@ public class CardGenerator : MonoBehaviour
     {
         if (zoneRect == null)
             zoneRect = GetComponent<RectTransform>();
+
+        if (handController == null)
+            handController = FindObjectOfType<HandController>();
     }
 
     private void Update()
     {
         UpdateLayout();
         ApplyGeneratorEffect();
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        if (eventData.clickCount < 2)
+            return;
+
+        if (handController == null)
+            return;
+
+        handController.SendAllMatchingCardsToGenerator(this);
     }
 
     public bool IsInsideZone(Vector2 screenPoint, Camera uiCamera)
