@@ -52,13 +52,7 @@ public class CardsToPlayOrder : MonoBehaviour
             RebuildOrder();
     }
 
-    public CardDrag GetCardAt(int index)
-    {
-        if (index < 0 || index >= queuedCards.Count)
-            return null;
 
-        return queuedCards[index];
-    }
 
     public void ReorderCardByPosition(CardDrag draggedCard)
     {
