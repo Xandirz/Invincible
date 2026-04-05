@@ -226,9 +226,17 @@ MonoBehaviour:
   zoneRect: {fileID: 7219218871548787307}
   cardSpacing: 10
   layoutSpeed: 12
+  spacingReducePerExtraCard: 0.2
+  minCardSpacing: 0.1
+  spacingReduceStartFromCard: 18
   acceptedCardType: 0
   generatedStatType: 0
   statsPerCard: 1
+  generatedCardType: 0
   effectText: {fileID: 3295702359851884543}
   playerStats: {fileID: 0}
   handController: {fileID: 0}
+  maxCards: 20
+  baseCardGenerationCooldown: 30
+  cardGenerationCooldownReducePerCard: 5
+  minCardGenerationCooldown: 5

@@ -28,11 +28,16 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
     public HandController handController;
 
     private readonly List<CardDrag> cards = new();
-    private float shieldRefreshTimer;
     private float cardGenerationTimeLeft;    
     public IReadOnlyList<CardDrag> Cards => cards;
     public int Count => cards.Count;
-
+    [Header("Capacity")]
+    public int maxCards = 20;
+    public float baseCardGenerationCooldown = 30f;
+    public float cardGenerationCooldownReducePerCard = 3f;
+    public float minCardGenerationCooldown = 5f;
+    public int FreeSlots => Mathf.Max(0, maxCards - cards.Count);
+    public bool IsFull => cards.Count >= maxCards;
     private void Awake()
     {
         if (zoneRect == null)
@@ -62,7 +67,10 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
         if (handController == null)
             return;
 
-        handController.SendAllMatchingCardsToGenerator(this);
+        if (FreeSlots <= 0)
+            return;
+
+        handController.SendMatchingCardsToGenerator(this, FreeSlots);
     }
 
     public bool IsInsideZone(Vector2 screenPoint, Camera uiCamera)
@@ -78,11 +86,23 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
         if (card == null)
             return false;
 
+        if (cards.Count >= maxCards)
+            return false;
+
         CardData cardData = card.GetCardData();
         if (cardData == null)
             return false;
 
         return cardData.cardType == acceptedCardType;
+    }
+    
+    private float GetCardGenerationCooldownForCurrentCards()
+    {
+        if (cards.Count <= 0)
+            return 0f;
+
+        float cooldown = baseCardGenerationCooldown - (cards.Count - 1) * cardGenerationCooldownReducePerCard;
+        return Mathf.Max(minCardGenerationCooldown, cooldown);
     }
 
     public void AddCard(CardDrag card)
@@ -90,7 +110,7 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
         if (card == null || cards.Contains(card) || !CanAcceptCard(card))
             return;
 
-        float oldTotalValue = cards.Count * statsPerCard;
+        float oldCooldown = GetCardGenerationCooldownForCurrentCards();
 
         cards.Add(card);
         card.SetCurrentZone(CardZone.Generator);
@@ -100,24 +120,21 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
 
         if (generatedStatType == GeneratedStatType.CardGeneration)
         {
-            float newTotalValue = cards.Count * statsPerCard;
+            float newCooldown = GetCardGenerationCooldownForCurrentCards();
 
-            if (oldTotalValue <= 0f && newTotalValue > 0f)
+            if (oldCooldown <= 0f && newCooldown > 0f)
             {
-                cardGenerationTimeLeft = 1f / newTotalValue;
+                cardGenerationTimeLeft = newCooldown;
             }
-            else if (oldTotalValue > 0f && newTotalValue > 0f)
+            else if (oldCooldown > 0f && newCooldown > 0f)
             {
-                float oldSecondsPerCard = 1f / oldTotalValue;
-                float newSecondsPerCard = 1f / newTotalValue;
-                float progressNormalized = 1f - Mathf.Clamp01(cardGenerationTimeLeft / oldSecondsPerCard);
-                cardGenerationTimeLeft = newSecondsPerCard * (1f - progressNormalized);
+                float progressNormalized = 1f - Mathf.Clamp01(cardGenerationTimeLeft / oldCooldown);
+                cardGenerationTimeLeft = newCooldown * (1f - progressNormalized);
             }
         }
 
         UpdateEffectText();
     }
-
     public void RemoveCard(CardDrag card)
     {
         if (card == null)
@@ -126,34 +143,31 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
         if (!cards.Contains(card))
             return;
 
-        float oldTotalValue = cards.Count * statsPerCard;
+        float oldCooldown = GetCardGenerationCooldownForCurrentCards();
 
         if (cards.Remove(card))
         {
-            float newTotalValue = cards.Count * statsPerCard;
-
             RebuildOrder();
             ApplyInstantBonusIfNeeded();
 
             if (generatedStatType == GeneratedStatType.CardGeneration)
             {
-                if (newTotalValue <= 0f)
+                float newCooldown = GetCardGenerationCooldownForCurrentCards();
+
+                if (newCooldown <= 0f)
                 {
                     cardGenerationTimeLeft = 0f;
                 }
-                else if (oldTotalValue > 0f)
+                else if (oldCooldown > 0f)
                 {
-                    float oldSecondsPerCard = 1f / oldTotalValue;
-                    float newSecondsPerCard = 1f / newTotalValue;
-                    float progressNormalized = 1f - Mathf.Clamp01(cardGenerationTimeLeft / oldSecondsPerCard);
-                    cardGenerationTimeLeft = newSecondsPerCard * (1f - progressNormalized);
+                    float progressNormalized = 1f - Mathf.Clamp01(cardGenerationTimeLeft / oldCooldown);
+                    cardGenerationTimeLeft = newCooldown * (1f - progressNormalized);
                 }
             }
 
             UpdateEffectText();
         }
     }
-
     public void ReorderCardByPosition(CardDrag draggedCard)
     {
         if (draggedCard == null || cards.Count <= 1)
@@ -230,13 +244,6 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
         switch (generatedStatType)
         {
             case GeneratedStatType.InvisibilityShield:
-                shieldRefreshTimer += Time.deltaTime;
-
-                if (shieldRefreshTimer >= 1f)
-                {
-                    playerStats.SetGeneratorBonus(GeneratedStatType.InvisibilityShield, totalValue);
-                    shieldRefreshTimer = 0f;
-                }
                 break;
 
             case GeneratedStatType.Damage:
@@ -252,7 +259,7 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
                 break;
 
             case GeneratedStatType.CardGeneration:
-                if (handController == null || totalValue <= 0f)
+                if (handController == null || cards.Count <= 0)
                     return;
 
                 cardGenerationTimeLeft -= Time.deltaTime;
@@ -280,9 +287,9 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
         {
             playerStats.SetGeneratorBonus(GeneratedStatType.AttackSpeed, totalValue);
         }
-        else if (generatedStatType == GeneratedStatType.InvisibilityShield && cards.Count == 0)
+        else if (generatedStatType == GeneratedStatType.InvisibilityShield)
         {
-            playerStats.SetGeneratorBonus(GeneratedStatType.InvisibilityShield, 0f);
+            playerStats.SetGeneratorBonus(GeneratedStatType.InvisibilityShield, totalValue);
         }
         else if (generatedStatType == GeneratedStatType.ProjectileCount)
         {
@@ -293,7 +300,6 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
             cardGenerationTimeLeft = 0f;
         }
     }
-
     private void UpdateEffectText()
     {
         if (effectText == null)
@@ -303,12 +309,13 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
 
         if (generatedStatType == GeneratedStatType.CardGeneration)
         {
-            if (cards.Count == 0 || totalValue <= 0f)
+            if (cards.Count == 0)
             {
                 effectText.text = $"place {acceptedCardType} and get {generatedCardType}";
                 return;
             }
 
+            float currentCooldown = GetCardGenerationCooldownForCurrentCards();
             effectText.text = $"{Mathf.CeilToInt(cardGenerationTimeLeft)} sec until {generatedCardType}";
             return;
         }
@@ -319,8 +326,7 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
             effectText.text = $"+{Mathf.RoundToInt(totalValue)} {statName}";
         else
             effectText.text = $"+{totalValue:0.##} {statName}";
-    }
-    private void ConsumeAllCards()
+    }    private void ConsumeAllCards()
     {
         for (int i = cards.Count - 1; i >= 0; i--)
         {

@@ -151,9 +151,9 @@ public class HandController : MonoBehaviour
         RefreshSiblingOrder();
     }
 
-    public void SendAllMatchingCardsToGenerator(CardGenerator generator)
+    public void SendMatchingCardsToGenerator(CardGenerator generator, int maxCount)
     {
-        if (generator == null)
+        if (generator == null || maxCount <= 0)
             return;
 
         List<CardDrag> matchingCards = new List<CardDrag>();
@@ -168,6 +168,9 @@ public class HandController : MonoBehaviour
                 continue;
 
             matchingCards.Add(card);
+
+            if (matchingCards.Count >= maxCount)
+                break;
         }
 
         for (int i = 0; i < matchingCards.Count; i++)
@@ -175,7 +178,6 @@ public class HandController : MonoBehaviour
             StartFlyingCardToGenerator(matchingCards[i], generator);
         }
     }
-
     private void StartFlyingCardToGenerator(CardDrag card, CardGenerator generator)
     {
         if (card == null || generator == null)

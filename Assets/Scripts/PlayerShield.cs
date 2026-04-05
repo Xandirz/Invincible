@@ -22,7 +22,7 @@ public class PlayerShield : MonoBehaviour
         if (enemy == null || playerStats == null)
             return;
 
-        bool absorbed = playerStats.TryAbsorbDamageWithShield(enemy.contactDamage);
+        bool absorbed = playerStats.TryAbsorbDamageWithShield(1f);
         if (!absorbed)
             return;
 
@@ -30,11 +30,10 @@ public class PlayerShield : MonoBehaviour
             playerStats.popupCanvas,
             playerStats.damagePopupPrefab,
             enemy.transform.position,
-            enemy.contactDamage,
+            1f,
             new Color(0.7f, 0.3f, 1f)
         );
 
         enemy.TakeDamageShield(enemy.currentHealth);
-        
     }
 }
