@@ -540,17 +540,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 7799392322828786485, guid: 098f0bef48906634cb1a2f3a47837e11, type: 3}
   spawnRadius: 8
-  startEnemiesPerWave: 5
+  startEnemiesPerWave: 1
   maxEnemiesPerWave: 500
   delayBetweenWaves: 1
   spawnIntervalInWave: 0.05
-  startEnemyHealth: 5
+  startEnemyHealth: 1
   startEnemyDamage: 1
   startEnemyMoveSpeed: 1
-  healthGrowthPerWave: 1
-  damageGrowthPerWave: 1
-  moveSpeedGrowthPerWave: 0.01
-  enemiesGrowthPerWave: 2
+  healthGrowthPerWave: 0
+  damageGrowthPerWave: 0
+  moveSpeedGrowthPerWave: 0
+  enemiesGrowthPerWave: 1
+  difficultyRampWave: 10
+  healthGrowthPerWaveAfter10: 1
+  damageGrowthPerWaveAfter10: 0
+  moveSpeedGrowthPerWaveAfter10: 0.01
+  enemiesGrowthPerWaveAfter10: 1
+  difficultyRampWave25: 25
+  healthGrowthPerWaveAfter25: 6
+  damageGrowthPerWaveAfter25: 0.1
+  moveSpeedGrowthPerWaveAfter25: 0.01
+  enemiesGrowthPerWaveAfter25: 10
   currentWave: 0
 --- !u!4 &665794407
 Transform:
@@ -679,7 +689,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0.0005967209, y: 0}
-  m_SizeDelta: {x: -6.8447, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1173357138
 MonoBehaviour:
@@ -693,7 +703,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_HorizontalFit: 0
+  m_HorizontalFit: 1
   m_VerticalFit: 1
 --- !u!114 &1173357139
 MonoBehaviour:
@@ -712,7 +722,7 @@ MonoBehaviour:
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
-  m_ChildAlignment: 1
+  m_ChildAlignment: 4
   m_Spacing: 60
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
@@ -750,8 +760,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95f88410b90b4a7a85a16b4fc6f5c9c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rewardEveryKills: 10
+  rewardEveryKills: 3
   handController: {fileID: 1160427959}
+  maxCardsInHandForReward: 50
 --- !u!4 &1190571109
 Transform:
   m_ObjectHideFlags: 0
@@ -1284,6 +1295,7 @@ MonoBehaviour:
   handController: {fileID: 1160427959}
   playerStats: {fileID: 19918042}
   enemySpawner: {fileID: 665794406}
+  extraBottomPadding: 100
   startBlueCardsInHand: 3
 --- !u!1 &1875464804
 GameObject:
@@ -1497,8 +1509,24 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6466338673802072028, guid: 83a3b35d01e035a47b7e44aeb110224e, type: 3}
       propertyPath: attackSpeed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6466338673802072028, guid: 83a3b35d01e035a47b7e44aeb110224e, type: 3}
+      propertyPath: lightningChains
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6466338673802072028, guid: 83a3b35d01e035a47b7e44aeb110224e, type: 3}
+      propertyPath: lightningChance
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6466338673802072028, guid: 83a3b35d01e035a47b7e44aeb110224e, type: 3}
+      propertyPath: lightningDamage
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6466338673802072028, guid: 83a3b35d01e035a47b7e44aeb110224e, type: 3}
+      propertyPath: lightningVfxPrefab
+      value: 
+      objectReference: {fileID: 8851593366965200827, guid: 01a72d2ac743f12408723956e9ce2b77, type: 3}
     - target: {fileID: 7750399393687450294, guid: 83a3b35d01e035a47b7e44aeb110224e, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.6

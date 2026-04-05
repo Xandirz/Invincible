@@ -284,8 +284,18 @@ MonoBehaviour:
   damage: 11
   attackSpeed: 0
   invisibilityShield: 0
+  projectileCount: 1
+  lightningChance: 0
+  lightningDamage: 1
+  lightningChains: 1
+  lightningRange: 4
+  lightningVfxPrefab: {fileID: 8851593366965200827, guid: 01a72d2ac743f12408723956e9ce2b77, type: 3}
   damageBonus: 0
   attackSpeedBonus: 0
+  projectileCountBonus: 0
+  lightningChanceBonus: 0
+  lightningDamageBonus: 0
+  lightningChainsBonus: 0
   playerShield: {fileID: 176354184368898999}
   popupCanvas: {fileID: 0}
   damagePopupPrefab: {fileID: 839910618006244363, guid: 795d6c3bfaa3aee4f879bb5adabb9f10, type: 3}

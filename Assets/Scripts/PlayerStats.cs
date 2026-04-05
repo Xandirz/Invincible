@@ -16,12 +16,22 @@ public class PlayerStats : MonoBehaviour
     public float attackSpeed;
     public float invisibilityShield;
     public float projectileCount = 1f;
-    
+
+    [Header("Lightning Runtime Stats")]
+    [Range(0f, 1f)] public float lightningChance = 0f;
+    public float lightningDamage = 1;
+    public int lightningChains = 1;
+    public float lightningRange = 4f;
+    public LightningEffect lightningVfxPrefab;
+
     [Header("Bonuses")]
     public float damageBonus;
     public float attackSpeedBonus;
     public float projectileCountBonus;
-    
+    public float lightningChanceBonus;
+    public float lightningDamageBonus;
+    public float lightningChainsBonus;
+
     [Header("Shield")]
     public PlayerShield playerShield;
 
@@ -45,6 +55,10 @@ public class PlayerStats : MonoBehaviour
         damage = baseDamage + damageBonus;
         attackSpeed = baseAttackSpeed + attackSpeedBonus;
         projectileCount = Mathf.Max(1f, 1f + projectileCountBonus);
+
+        lightningChance = Mathf.Clamp01(lightningChanceBonus);
+        lightningDamage = Mathf.Max(1f, lightningDamageBonus);
+        lightningChains = Mathf.Max(1, Mathf.RoundToInt(lightningChainsBonus));
     }
 
     public void SetGeneratorBonus(GeneratedStatType statType, float value)
@@ -65,9 +79,24 @@ public class PlayerStats : MonoBehaviour
                 invisibilityShield = Mathf.Max(0f, value);
                 UpdateShieldVisual();
                 break;
-            
+
             case GeneratedStatType.ProjectileCount:
                 projectileCountBonus = value;
+                RecalculateStats();
+                break;
+
+            case GeneratedStatType.LightningChance:
+                lightningChanceBonus = value;
+                RecalculateStats();
+                break;
+
+            case GeneratedStatType.LightningDamage:
+                lightningDamageBonus = value;
+                RecalculateStats();
+                break;
+
+            case GeneratedStatType.LightningChains:
+                lightningChainsBonus = value;
                 RecalculateStats();
                 break;
         }

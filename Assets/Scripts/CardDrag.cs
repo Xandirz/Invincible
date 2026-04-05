@@ -147,6 +147,8 @@ public class CardDrag : MonoBehaviour,
         if (GetComponent<FlyingCardToGenerator>() != null)
             return;
 
+        RefreshGenerators();
+
         IsDragging = true;
 
         if (CurrentZone == CardZone.Hand && handController != null)
@@ -200,6 +202,9 @@ public class CardDrag : MonoBehaviour,
 
     private CardGenerator FindTargetGenerator(Vector2 screenPosition)
     {
+        RefreshGenerators();
+
+        
         if (generators == null || generators.Length == 0)
             return null;
 

@@ -40,7 +40,16 @@ public class PlayerCombat : MonoBehaviour
 
         attackTimer = GetAttackCooldown();
     }
+    private void Shoot(Enemy target)
+    {
+        Projectile projectileInstance = Instantiate(
+            projectilePrefab,
+            firePoint.position,
+            Quaternion.identity
+        );
 
+        projectileInstance.Initialize(target.transform, playerStats.damage, playerStats);
+    }
     private Enemy[] FindTargetsInRange(int targetCount)
     {
         Enemy[] enemies = FindObjectsOfType<Enemy>();
@@ -74,16 +83,7 @@ public class PlayerCombat : MonoBehaviour
 
         return result;
     }
-    private void Shoot(Enemy target)
-    {
-        Projectile projectileInstance = Instantiate(
-            projectilePrefab,
-            firePoint.position,
-            Quaternion.identity
-        );
 
-        projectileInstance.Initialize(target.transform, playerStats.damage);
-    }
 
     private float GetAttackCooldown()
     {

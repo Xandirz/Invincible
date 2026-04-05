@@ -9,7 +9,7 @@ public class UnlockManager : MonoBehaviour
     public HandController handController;
     public PlayerStats playerStats;
     public EnemySpawner enemySpawner;
-
+    public float extraBottomPadding = 100f;
     [Header("Start Unlock")]
     public int startBlueCardsInHand = 3;
 
@@ -35,73 +35,102 @@ public class UnlockManager : MonoBehaviour
             enemySpawner.OnWaveCompleted -= HandleWaveCompleted;
     }
 
-    private void HandleWaveCompleted(int waveNumber)
+private void HandleWaveCompleted(int waveNumber)
+{
+    RefreshShieldAtWaveStart();
+    
+    if (waveNumber == 1)
     {
-        RefreshShieldAtWaveStart();
+        CreateGenerator(
+            acceptedCardType: CardType.White,
+            generatedStatType: GeneratedStatType.CardGeneration,
+            statsPerCard: 0.01f,
+            imageColor: new Color32(0x58, 0xB9, 0xB9, 74),
+            maxCards: 10,
+            generatedCardType: CardType.Blue
+        );
         
-        if (waveNumber == 1)
-        {
-            CreateGenerator(
-                acceptedCardType: CardType.White,
-                generatedStatType: GeneratedStatType.CardGeneration,
-                statsPerCard: 0.01f,
-                imageColor: new Color32(0x58, 0xB9, 0xB9, 74),
-                maxCards: 10,
-                generatedCardType: CardType.Blue
-            );
-            
-            AddStartCards(CardType.White, 5);
-        }
-        else if (waveNumber == 2)
-        {
-            CreateGenerator(
-                acceptedCardType: CardType.Pink,
-                generatedStatType: GeneratedStatType.Damage,
-                statsPerCard: 1f,
-                imageColor: new Color32(0xFF, 0x00, 0x00, 74),
-                maxCards: 100
-            );
-
-            CreateGenerator(
-                acceptedCardType: CardType.White,
-                generatedStatType: GeneratedStatType.CardGeneration,
-                statsPerCard: 0.01f,
-                imageColor: new Color32(0xFF, 0xFF, 0xFF, 74),
-                maxCards: 10,
-                generatedCardType: CardType.Pink
-            );
-        }
-        else if (waveNumber == 3)
-        {
-            CreateGenerator(
-                acceptedCardType: CardType.Yellow,
-                generatedStatType: GeneratedStatType.AttackSpeed,
-                statsPerCard: 0.1f,
-                imageColor: new Color32(0xFF, 0xE0, 0x66, 74),
-                maxCards: 40
-            );
-
-            CreateGenerator(
-                acceptedCardType: CardType.White,
-                generatedStatType: GeneratedStatType.CardGeneration,
-                statsPerCard: 0.01f,
-                imageColor: new Color32(0xFF, 0xFF, 0xFF, 74),
-                maxCards: 10,
-                generatedCardType: CardType.Yellow
-            );
-        }
-        else if (waveNumber == 5)
-        {
-            CreateGenerator(
-                acceptedCardType: CardType.Pink,
-                generatedStatType: GeneratedStatType.ProjectileCount,
-                statsPerCard: 1f,
-                imageColor: new Color32(0xFF, 0x00, 0x00, 74),
-                maxCards: 20
-            );
-        }
+        AddStartCards(CardType.White, 10);
     }
-    private void RefreshShieldAtWaveStart()
+    else if (waveNumber == 2)
+    {
+        CreateGenerator(
+            acceptedCardType: CardType.Pink,
+            generatedStatType: GeneratedStatType.Damage,
+            statsPerCard: 1f,
+            imageColor: new Color32(0xFF, 0x00, 0x00, 74),
+            maxCards: 100
+        );
+
+        CreateGenerator(
+            acceptedCardType: CardType.White,
+            generatedStatType: GeneratedStatType.CardGeneration,
+            statsPerCard: 0.01f,
+            imageColor: new Color32(0xFF, 0xFF, 0xFF, 74),
+            maxCards: 10,
+            generatedCardType: CardType.Pink
+        );
+    }
+    else if (waveNumber == 3)
+    {
+        CreateGenerator(
+            acceptedCardType: CardType.Yellow,
+            generatedStatType: GeneratedStatType.AttackSpeed,
+            statsPerCard: 0.5f,
+            imageColor: new Color32(0xFF, 0xE0, 0x66, 74),
+            maxCards: 40
+        );
+
+        CreateGenerator(
+            acceptedCardType: CardType.White,
+            generatedStatType: GeneratedStatType.CardGeneration,
+            statsPerCard: 0.01f,
+            imageColor: new Color32(0xFF, 0xFF, 0xFF, 74),
+            maxCards: 10,
+            generatedCardType: CardType.Yellow
+        );
+    }
+    else if (waveNumber == 5)
+    {
+        CreateGenerator(
+            acceptedCardType: CardType.Pink,
+            generatedStatType: GeneratedStatType.ProjectileCount,
+            statsPerCard: 1f,
+            imageColor: new Color32(0xFF, 0x00, 0x00, 74),
+            maxCards: 20
+        );
+    }
+    else if (waveNumber == 10)
+    {
+        CreateGenerator(
+            acceptedCardType: CardType.Yellow,
+            generatedStatType: GeneratedStatType.LightningChance,
+            statsPerCard: 0.05f,
+            imageColor: new Color32(0xFF, 0xE0, 0x66, 74),
+            maxCards: 10
+        );
+    }
+    else if (waveNumber == 11)
+    {
+        CreateGenerator(
+            acceptedCardType: CardType.Pink,
+            generatedStatType: GeneratedStatType.LightningDamage,
+            statsPerCard: 1f,
+            imageColor: new Color32(0xFF, 0x66, 0x66, 74),
+            maxCards: 100
+        );
+    }
+    else if (waveNumber == 12)
+    {
+        CreateGenerator(
+            acceptedCardType: CardType.Blue,
+            generatedStatType: GeneratedStatType.LightningChains,
+            statsPerCard: 1f,
+            imageColor: new Color32(0x66, 0xAA, 0xFF, 74),
+            maxCards: 10
+        );
+    }
+}    private void RefreshShieldAtWaveStart()
     {
         if (playerStats == null)
             return;
@@ -159,10 +188,34 @@ public class UnlockManager : MonoBehaviour
         Image image = generatorObj.GetComponent<Image>();
         if (image != null)
             image.color = imageColor;
-
+        
+        
+        RefreshGeneratorLayout();
         return generator;
     }
+    private void RefreshGeneratorLayout()
+    {
+        if (generatorContent == null)
+            return;
 
+        RectTransform contentRect = generatorContent as RectTransform;
+        if (contentRect == null)
+            return;
+
+        VerticalLayoutGroup layoutGroup = contentRect.GetComponent<VerticalLayoutGroup>();
+        if (layoutGroup != null)
+        {
+            RectOffset padding = layoutGroup.padding;
+            padding.bottom = Mathf.RoundToInt(extraBottomPadding);
+            layoutGroup.padding = padding;
+        }
+
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
+        Canvas.ForceUpdateCanvases();
+    } 
+    
+    
     private void AddStartCards(CardType cardType, int count)
     {
         if (handController == null)

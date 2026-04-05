@@ -4,5 +4,8 @@
     Damage,
     AttackSpeed,
     ProjectileCount,
-    CardGeneration
+    CardGeneration,
+    LightningChance,
+    LightningDamage,
+    LightningChains
 }

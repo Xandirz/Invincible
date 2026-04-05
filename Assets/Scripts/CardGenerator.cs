@@ -258,6 +258,18 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
                 playerStats.SetGeneratorBonus(GeneratedStatType.ProjectileCount, totalValue);
                 break;
 
+            case GeneratedStatType.LightningChance:
+                playerStats.SetGeneratorBonus(GeneratedStatType.LightningChance, totalValue);
+                break;
+
+            case GeneratedStatType.LightningDamage:
+                playerStats.SetGeneratorBonus(GeneratedStatType.LightningDamage, totalValue);
+                break;
+
+            case GeneratedStatType.LightningChains:
+                playerStats.SetGeneratorBonus(GeneratedStatType.LightningChains, totalValue);
+                break;
+
             case GeneratedStatType.CardGeneration:
                 if (handController == null || cards.Count <= 0)
                     return;
@@ -295,11 +307,23 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
         {
             playerStats.SetGeneratorBonus(GeneratedStatType.ProjectileCount, totalValue);
         }
+        else if (generatedStatType == GeneratedStatType.LightningChance)
+        {
+            playerStats.SetGeneratorBonus(GeneratedStatType.LightningChance, totalValue);
+        }
+        else if (generatedStatType == GeneratedStatType.LightningDamage)
+        {
+            playerStats.SetGeneratorBonus(GeneratedStatType.LightningDamage, totalValue);
+        }
+        else if (generatedStatType == GeneratedStatType.LightningChains)
+        {
+            playerStats.SetGeneratorBonus(GeneratedStatType.LightningChains, totalValue);
+        }
         else if (generatedStatType == GeneratedStatType.CardGeneration && cards.Count == 0)
         {
             cardGenerationTimeLeft = 0f;
         }
-    }
+    } 
     private void UpdateEffectText()
     {
         if (effectText == null)
@@ -315,8 +339,13 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
                 return;
             }
 
-            float currentCooldown = GetCardGenerationCooldownForCurrentCards();
             effectText.text = $"{Mathf.CeilToInt(cardGenerationTimeLeft)} sec until {generatedCardType}";
+            return;
+        }
+
+        if (generatedStatType == GeneratedStatType.LightningChance)
+        {
+            effectText.text = $"+{Mathf.RoundToInt(totalValue * 100f)}% lightning chance";
             return;
         }
 
@@ -326,7 +355,8 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
             effectText.text = $"+{Mathf.RoundToInt(totalValue)} {statName}";
         else
             effectText.text = $"+{totalValue:0.##} {statName}";
-    }    private void ConsumeAllCards()
+    }    
+    private void ConsumeAllCards()
     {
         for (int i = cards.Count - 1; i >= 0; i--)
         {
@@ -355,10 +385,22 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
 
             case GeneratedStatType.InvisibilityShield:
                 return "invincibility";
+
             case GeneratedStatType.ProjectileCount:
                 return "projectile count";
+
+            case GeneratedStatType.LightningChance:
+                return "lightning chance";
+
+            case GeneratedStatType.LightningDamage:
+                return "lightning damage";
+
+            case GeneratedStatType.LightningChains:
+                return "lightning chains";
+
             case GeneratedStatType.CardGeneration:
                 return "card generation";
+
             default:
                 return "stat";
         }

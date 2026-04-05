@@ -150,6 +150,12 @@ MonoBehaviour:
   contactDamage: 1
   popupCanvas: {fileID: 0}
   damagePopupPrefab: {fileID: 839910618006244363, guid: 795d6c3bfaa3aee4f879bb5adabb9f10, type: 3}
+  randomGoblinSprites:
+  - {fileID: 21300000, guid: 8ea921d3668ea854a84bd1c8140d5cc2, type: 3}
+  - {fileID: 21300000, guid: 8dd0857586535414b8d5508dbc0269bb, type: 3}
+  - {fileID: 21300000, guid: 816d302a8e06c0542b8701656e012672, type: 3}
+  goblinElectrocutedSprite: {fileID: 21300000, guid: c13f749923faee740bfd63751df006d1, type: 3}
+  electrocutedDuration: 1
 --- !u!50 &3485518968577934552
 Rigidbody2D:
   serializedVersion: 4

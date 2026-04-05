@@ -11,7 +11,7 @@ public class EnemyDeathRewardManager : MonoBehaviour
     public HandController handController;
 
     private int killedEnemiesCount;
-
+    public int maxCardsInHandForReward = 50;
     private void Awake()
     {
         Instance = this;
@@ -29,6 +29,10 @@ public class EnemyDeathRewardManager : MonoBehaviour
 
         if (handController == null)
             return;
+
+        if (handController.transform.childCount > maxCardsInHandForReward)
+            return;
+
 
         handController.SpawnRewardCardFromWorld(worldPosition);
     }
