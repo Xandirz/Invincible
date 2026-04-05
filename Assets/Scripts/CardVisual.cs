@@ -106,6 +106,9 @@ public class CardVisual : MonoBehaviour
 
     private void UpdateTilt()
     {
+        if (tiltRoot == null || visualRoot == null || maxMouseDistance <= 0.001f)
+            return;
+
         Vector3 delta = (cardRect.position - lastFramePosition) / Mathf.Max(Time.deltaTime, 0.0001f);
         lastFramePosition = cardRect.position;
 
@@ -123,7 +126,7 @@ public class CardVisual : MonoBehaviour
         float targetTiltX = -normalizedY * tiltAmountX;
         float targetTiltY = normalizedX * tiltAmountY;
 
-        swapPunchZ = Mathf.SmoothDamp(swapPunchZ, 0f, ref swapPunchVelocity, 1f / punchDamping);
+        swapPunchZ = Mathf.SmoothDamp(swapPunchZ, 0f, ref swapPunchVelocity, 1f / Mathf.Max(punchDamping, 0.0001f));
 
         Quaternion targetRotation = Quaternion.Euler(
             targetTiltX,
@@ -137,10 +140,9 @@ public class CardVisual : MonoBehaviour
             Time.deltaTime * tiltSmooth
         );
     }
-
     private void UpdateShadow()
     {
-        if (shadow == null)
+        if (shadow == null || visualRoot == null || maxMouseDistance <= 0.001f)
             return;
 
         Vector2 mouseScreen = Input.mousePosition;
@@ -171,7 +173,6 @@ public class CardVisual : MonoBehaviour
             Time.deltaTime * shadowFollowSpeed
         );
     }
-
     private void UpdateCanvasSorting()
     {
         if (visualCanvas == null)

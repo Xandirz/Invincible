@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 8253250153201740733}
   - component: {fileID: 3807015689578255191}
   - component: {fileID: 1354209097257588954}
-  - component: {fileID: 8076624469424050324}
+  - component: {fileID: 8817757966436549527}
   m_Layer: 5
-  m_Name: Card 1
+  m_Name: Card_White
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -59,7 +59,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 472877f61ebc40d8a32c5f7245953017, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &8076624469424050324
+--- !u!114 &8817757966436549527
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -72,7 +72,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardName: Card
-  cardType: 1
+  cardType: 3
 --- !u!1 &1408005781019333124
 GameObject:
   m_ObjectHideFlags: 0
@@ -210,7 +210,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 0187b9fe6b2ebfb47af2d18ae986b91e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 58196ca8171ed254c975b3e411ae4156, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -285,7 +285,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 0187b9fe6b2ebfb47af2d18ae986b91e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 58196ca8171ed254c975b3e411ae4156, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

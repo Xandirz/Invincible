@@ -144,8 +144,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34d9a3ed996544e1ae51c60e6aa278b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 2
-  currentHealth: 2
+  maxHealth: 10
+  currentHealth: 10
   moveSpeed: 1
   contactDamage: 1
   popupCanvas: {fileID: 0}

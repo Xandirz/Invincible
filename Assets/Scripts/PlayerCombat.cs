@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class PlayerCombat : MonoBehaviour
 {
@@ -22,22 +23,28 @@ public class PlayerCombat : MonoBehaviour
 
         attackTimer -= Time.deltaTime;
 
-        Enemy target = FindClosestEnemyInRange();
-        if (target == null)
+        if (attackTimer > 0f)
             return;
 
-        if (attackTimer <= 0f)
+        Enemy[] targets = FindTargetsInRange(Mathf.RoundToInt(playerStats.projectileCount));
+        if (targets.Length == 0)
+            return;
+
+        for (int i = 0; i < targets.Length; i++)
         {
-            Shoot(target);
-            attackTimer = GetAttackCooldown();
+            if (targets[i] == null)
+                continue;
+
+            Shoot(targets[i]);
         }
+
+        attackTimer = GetAttackCooldown();
     }
 
-    private Enemy FindClosestEnemyInRange()
+    private Enemy[] FindTargetsInRange(int targetCount)
     {
         Enemy[] enemies = FindObjectsOfType<Enemy>();
-        Enemy closestEnemy = null;
-        float closestDistance = float.MaxValue;
+        List<Enemy> availableTargets = new List<Enemy>();
 
         for (int i = 0; i < enemies.Length; i++)
         {
@@ -49,16 +56,24 @@ public class PlayerCombat : MonoBehaviour
             if (distance > playerStats.attackRange)
                 continue;
 
-            if (distance < closestDistance)
-            {
-                closestDistance = distance;
-                closestEnemy = enemies[i];
-            }
+            availableTargets.Add(enemies[i]);
         }
 
-        return closestEnemy;
-    }
+        availableTargets.Sort((a, b) =>
+        {
+            float distanceA = Vector2.Distance(transform.position, a.transform.position);
+            float distanceB = Vector2.Distance(transform.position, b.transform.position);
+            return distanceA.CompareTo(distanceB);
+        });
 
+        int finalCount = Mathf.Min(targetCount, availableTargets.Count);
+        Enemy[] result = new Enemy[finalCount];
+
+        for (int i = 0; i < finalCount; i++)
+            result[i] = availableTargets[i];
+
+        return result;
+    }
     private void Shoot(Enemy target)
     {
         Projectile projectileInstance = Instantiate(

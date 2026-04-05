@@ -206,20 +206,65 @@ public class HandController : MonoBehaviour
         card.SetCurrentZone(CardZone.Generator);
         card.SnapInstant();
     }
+    public void SpawnGeneratedCardFromGenerator(CardType cardType, RectTransform generatorRect)
+    {
+        if (hand == null || rootCanvas == null || generatorRect == null)
+            return;
 
-    public void SpawnRewardCardFromWorld(Vector3 worldPosition)
+        GameObject prefab = GetCardPrefabByType(cardType);
+        if (prefab == null)
+        {
+            Debug.LogWarning($"HandController: не найден prefab карты с типом {cardType}");
+            return;
+        }
+
+        GameObject cardObj = Instantiate(prefab, rootCanvas.transform);
+
+        RectTransform rect = cardObj.GetComponent<RectTransform>();
+        if (rect == null)
+        {
+            Destroy(cardObj);
+            return;
+        }
+
+        RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
+
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(
+            rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera,
+            generatorRect.position
+        );
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvasRect,
+            screenPoint,
+            rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera,
+            out Vector2 localPoint
+        );
+
+        rect.anchoredPosition = localPoint;
+        rect.localRotation = Quaternion.identity;
+        rect.localScale = Vector3.one;
+
+        CardDrag existingDrag = cardObj.GetComponent<CardDrag>();
+        if (existingDrag != null)
+            Destroy(existingDrag);
+
+        FlyingCardToHand flying = cardObj.GetComponent<FlyingCardToHand>();
+        if (flying == null)
+            flying = cardObj.AddComponent<FlyingCardToHand>();
+
+        flying.flySpeed = rewardCardFlySpeed;
+        flying.Initialize(hand, this);
+    }    public void SpawnRewardCardFromWorld(Vector3 worldPosition)
     {
         if (cardPrefabs == null || cardPrefabs.Count == 0 || hand == null || rootCanvas == null)
             return;
 
-        int randomIndex = Random.Range(0, cardPrefabs.Count);
-        GameObject randomPrefab = cardPrefabs[randomIndex];
+        GameObject rewardPrefab = GetCardPrefabByType(CardType.White);
 
-        if (randomPrefab == null)
-            return;
+   
 
-        GameObject cardObj = Instantiate(randomPrefab, rootCanvas.transform);
-
+        GameObject cardObj = Instantiate(rewardPrefab, rootCanvas.transform);
         RectTransform rect = cardObj.GetComponent<RectTransform>();
         if (rect == null)
             return;
@@ -246,7 +291,27 @@ public class HandController : MonoBehaviour
         flying.flySpeed = rewardCardFlySpeed;
         flying.Initialize(hand, this);
     }
+    private GameObject GetCardPrefabByType(CardType cardType)
+    {
+        if (cardPrefabs == null || cardPrefabs.Count == 0)
+            return null;
 
+        for (int i = 0; i < cardPrefabs.Count; i++)
+        {
+            GameObject prefab = cardPrefabs[i];
+            if (prefab == null)
+                continue;
+
+            CardData cardData = prefab.GetComponent<CardData>();
+            if (cardData == null)
+                continue;
+
+            if (cardData.cardType == cardType)
+                return prefab;
+        }
+
+        return null;
+    }
     public void ConvertFlyingCardToHandCard(GameObject cardObj)
     {
         if (cardObj == null || hand == null)
@@ -323,7 +388,54 @@ public class HandController : MonoBehaviour
             cards[i].AnimateToTarget(layoutLerpSpeed, returnSpeed, dragScale);
         }
     }
+    public void AddCardByType(CardType cardType)
+    {
+        if (cardPrefabs == null || cardPrefabs.Count == 0 || hand == null)
+        {
+            Debug.LogWarning("HandController: не назначены cardPrefabs или hand");
+            return;
+        }
 
+        GameObject matchedPrefab = null;
+
+        for (int i = 0; i < cardPrefabs.Count; i++)
+        {
+            GameObject prefab = cardPrefabs[i];
+            if (prefab == null)
+                continue;
+
+            CardData cardData = prefab.GetComponent<CardData>();
+            if (cardData == null)
+                continue;
+
+            if (cardData.cardType == cardType)
+            {
+                matchedPrefab = prefab;
+                break;
+            }
+        }
+
+        if (matchedPrefab == null)
+        {
+            Debug.LogWarning($"HandController: не найден prefab карты с типом {cardType}");
+            return;
+        }
+
+        GameObject cardObj = Instantiate(matchedPrefab, hand);
+        CardDrag card = cardObj.GetComponent<CardDrag>();
+
+        if (card == null)
+            card = cardObj.AddComponent<CardDrag>();
+
+        card.Initialize(this);
+        card.SetCurrentZone(CardZone.Hand);
+        card.SetCurrentGenerator(null);
+
+        cards.Add(card);
+
+        RefreshSiblingOrder();
+        ForceSnapTargets();
+    }
     private void ForceSnapTargets()
     {
         foreach (var card in cards)

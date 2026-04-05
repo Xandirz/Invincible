@@ -2,5 +2,7 @@
 {
     InvisibilityShield,
     Damage,
-    AttackSpeed
+    AttackSpeed,
+    ProjectileCount,
+    CardGeneration
 }

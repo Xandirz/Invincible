@@ -4,8 +4,9 @@ public enum CardType
 {
    
     Blue,
+    Pink,
     Yellow,
-    Pink
+    White
 }
 
 public class CardData : MonoBehaviour

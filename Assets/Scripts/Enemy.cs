@@ -8,7 +8,7 @@ public class Enemy : MonoBehaviour
     public float currentHealth = 30f;
     public float moveSpeed = 2f;
     public float contactDamage = 5f;
-
+    private EnemySpawner spawner;
     [Header("Popup")]
     public Canvas popupCanvas;
     public GameObject damagePopupPrefab;
@@ -27,7 +27,10 @@ public class Enemy : MonoBehaviour
         if (player != null)
             playerTarget = player.transform;
     }
-
+    public void SetSpawner(EnemySpawner enemySpawner)
+    {
+        spawner = enemySpawner;
+    }
     private void Update()
     {
         if (playerTarget == null)
@@ -57,7 +60,7 @@ public class Enemy : MonoBehaviour
             return;
 
         stats.TakeDamage(contactDamage);
-        Destroy(gameObject);
+        Die();
     }
 
     public void TakeDamage(float amount)
@@ -96,6 +99,9 @@ public class Enemy : MonoBehaviour
     {
         if (EnemyDeathRewardManager.Instance != null)
             EnemyDeathRewardManager.Instance.RegisterEnemyDeath(transform.position);
+
+        if (spawner != null)
+            spawner.NotifyEnemyDied();
 
         Destroy(gameObject);
     }

@@ -15,11 +15,13 @@ public class PlayerStats : MonoBehaviour
     public float damage;
     public float attackSpeed;
     public float invisibilityShield;
-
+    public float projectileCount = 1f;
+    
     [Header("Bonuses")]
     public float damageBonus;
     public float attackSpeedBonus;
-
+    public float projectileCountBonus;
+    
     [Header("Shield")]
     public PlayerShield playerShield;
 
@@ -42,6 +44,7 @@ public class PlayerStats : MonoBehaviour
     {
         damage = baseDamage + damageBonus;
         attackSpeed = baseAttackSpeed + attackSpeedBonus;
+        projectileCount = Mathf.Max(1f, 1f + projectileCountBonus);
     }
 
     public void SetGeneratorBonus(GeneratedStatType statType, float value)
@@ -61,6 +64,11 @@ public class PlayerStats : MonoBehaviour
             case GeneratedStatType.InvisibilityShield:
                 invisibilityShield = Mathf.Max(0f, value);
                 UpdateShieldVisual();
+                break;
+            
+            case GeneratedStatType.ProjectileCount:
+                projectileCountBonus = value;
+                RecalculateStats();
                 break;
         }
     }
