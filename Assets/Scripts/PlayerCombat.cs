@@ -49,6 +49,8 @@ public class PlayerCombat : MonoBehaviour
         );
 
         projectileInstance.Initialize(target.transform, playerStats.damage, playerStats);
+        
+        AudioManager.Instance?.PlaySfx(GameSound.ProjectileShot);
     }
     private Enemy[] FindTargetsInRange(int targetCount)
     {

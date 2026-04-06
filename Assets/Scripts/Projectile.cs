@@ -140,5 +140,6 @@ public class Projectile : MonoBehaviour
 
         LightningEffect effect = Instantiate(ownerStats.lightningVfxPrefab);
         effect.Play(start, end);
+        AudioManager.Instance?.PlaySfx(GameSound.LightningCast);
     }
 }

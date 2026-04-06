@@ -68,7 +68,7 @@ public class HandController : MonoBehaviour
         card.SetCurrentGenerator(null);
 
         cards.Add(card);
-
+        AudioManager.Instance?.PlaySfx(GameSound.CardAddedToHand);
         RefreshSiblingOrder();
         ForceSnapTargets();
     }
@@ -331,6 +331,8 @@ public class HandController : MonoBehaviour
 
         if (!cards.Contains(card))
             cards.Add(card);
+        
+        AudioManager.Instance?.PlaySfx(GameSound.CardAddedToHand);
 
         RefreshSiblingOrder();
         ForceSnapTargets();
@@ -434,7 +436,7 @@ public class HandController : MonoBehaviour
         card.SetCurrentGenerator(null);
 
         cards.Add(card);
-
+        AudioManager.Instance?.PlaySfx(GameSound.CardAddedToHand);
         RefreshSiblingOrder();
         ForceSnapTargets();
     }

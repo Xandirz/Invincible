@@ -115,6 +115,9 @@ public class CardGenerator : MonoBehaviour, IPointerClickHandler
         cards.Add(card);
         card.SetCurrentZone(CardZone.Generator);
         card.SetCurrentGenerator(this);
+        AudioManager.Instance?.PlaySfx(GameSound.CardAddedToGenerator);
+
+        
         RebuildOrder();
         ApplyInstantBonusIfNeeded();
 

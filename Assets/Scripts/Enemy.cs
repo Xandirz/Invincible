@@ -185,7 +185,8 @@ public class Enemy : MonoBehaviour
 
         if (spawner != null)
             spawner.NotifyEnemyDied();
-
+        AudioManager.Instance?.PlaySfx(GameSound.EnemyDied);
         Destroy(gameObject);
+        
     }
 }
